@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+    <head><meta charset="UTF-8">
+        <title>STM32 web server</title>
+		<style>
+			input[type=checkbox] { margin: 15px 10px; transform: scale(1.5); width: 30px; }
+			button { margin: 10px 10px; width: 150px; }
+			legend { color: blue; font-size: 110%; }
+			h1 { font-size: 150%; color: green; margin: 20px 100px; }
+			fieldset { margin: 5px 20px; width: 400px; }
+		</style>
+    </head>
+    <body>
+        <h1>Web Server example using ESP8266 with AT commands</h1>
+			<fieldset><legend>LED control</legend><br/>
+			<button type="button" id="btnLEDcheck" onclick="GetStatus()">Get LED status</button>
+			<input type="checkbox" id="chkboxLED" onclick="LED_Toggle(this.checked)"></input><label>LED is ...</label><br/>
+			<button type="button" id="btnLEDon" onclick="LED_send('1')">LED ON</button>
+			<button type="button" id="btnLEDoff" onclick="LED_send('0')">LED OFF</button><br/><br/>
+			</fieldset><br/>
+			<fieldset><legend>Message log</legend>
+			<textarea id='msg_log' rows='10' cols='80' placeholder="Mesage log" style="resize:none;background-color:#EEEEEE" readonly></textarea>
+			</fieldset>    </body>
+	<script>
+		var strLED = "";
+		var LED_state = 0;
+		//---------------------------------------------------------------------
+		function make2chars(i) { return ( (i<10) ? ('0'+i.toString()) : (i.toString()) ); }
+		//---------------------------------------------------------------------
+		function MsgLog(str)
+		{
+			var d = new Date();
+			var dStr = d.getFullYear()+"-"+make2chars(d.getMonth()+1)+"-"+make2chars(d.getDate())+","
+				+make2chars(d.getHours())+":"+make2chars(d.getMinutes())+":"+make2chars(d.getSeconds());
+			str = dStr + "> " + str;
+			console.log(str);
+			document.getElementById("msg_log").innerHTML += str+"\n";
+			document.getElementById("msg_log").scrollTop = document.getElementById("msg_log").scrollHeight;
+		}
+		//---------------------------------------------------------------------
+		function Init()
+		{
+			GetStatus();
+		}
+		//---------------------------------------------------------------------
+		function GetStatus()
+		{
+			strLED = "LED=?";
+			GetArduinoIO();
+		}
+		//---------------------------------------------------------------------
+		function LED_send(on)
+		{
+			strLED = "LED=" + on;
+			obj = document.getElementById("chkboxLED");
+			obj = obj.nextElementSibling; // label
+			obj.innerHTML = "LED is ...";
+			GetArduinoIO();
+		}
+		//---------------------------------------------------------------------
+		function LED_Toggle(chk)
+		{
+			LED_send(chk?'1':'0');
+		}
+		//---------------------------------------------------------------------
+		function LED_SetState(val)
+		{
+			obj = document.getElementById("chkboxLED");
+			obj.checked = (val ? true : false);
+			obj = obj.nextElementSibling; // label
+			obj.innerHTML = (val ? "LED is ON" : "LED is OFF");
+		}
+		//---------------------------------------------------------------------
+		function ParseReply(rep)
+		{
+			MsgLog("Rx: "+rep);
+			if ( (pos = rep.indexOf("LED"))>=0 ) { // parse: LED=[0,1]
+				LED_SetState(rep.charCodeAt(pos+4)-"0".charCodeAt(0));
+			}
+			strLED = "";
+		}
+		//---------------------------------------------------------------------
+		function GetArduinoIO()
+		{
+			var request = new XMLHttpRequest();
+			// send HTTP GET request to switch on/off or get LED status
+			txStr = strLED;
+			request.open("GET", txStr, true);
+			request.onreadystatechange = function() {
+				if ( this.readyState==4 && this.status==200 ) {
+					repl = this.responseText;
+					ParseReply(repl);
+				}
+			};
+			request.send(null);
+			MsgLog("Tx: "+txStr);
+		}
+		Init();
+	</script>
+</html>
