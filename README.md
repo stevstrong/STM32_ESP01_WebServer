@@ -1,6 +1,7 @@
 # STM32_ESP01_WebServer
 
-Simple web server example using STM32F03C8 (blue pill) and ESP8266 via AT commands.
+Simple web server example using STM32F103C8 (blue pill) and ESP8266 via AT commands.
+
 The index page is stored in flash.
 
 Usage:
