@@ -304,10 +304,10 @@ uint8_t ESP_ParseLine()
 				sockStatus[sock] = ESP_CONNECTED;
 				PRINTF("connect socket %u\n", sock);
 			}
-			else
+			else // should not happen
 			{
 				rxSocket = MAX_SOCKETS;
-				PRINTF("Invalid socket: %u", sock);
+				PRINTF("Invalid socket: %u\n", sock);
 			}
 		}
 		else
@@ -372,7 +372,7 @@ uint8_t ESP_ParseLine()
 				PRINTF("ERROR: Socket not connected!\n"); goto fail; }
 
 			if ( (p = strtok(NULL, delim))==NULL ) {
-				PRINTF("ERROR: Wrong data length!"); goto fail; }
+				PRINTF("ERROR: Wrong data length!\n"); goto fail; }
 			//uint16_t dataLen = atoi(p);
 			//debug.print("> Data length: "); debug.println(dataLen);
 
@@ -552,8 +552,6 @@ void ESP_setup(customParseFunctPtr custom_Parse, voidFuncPtr custom_Process)
 // AT+CIFSR        // Gets the Local IP Address
 
 }
-//-----------------------------------------------------------------------------
-uint32_t ido;
 //-----------------------------------------------------------------------------
 void ESP_loop()
 {
